@@ -1,19 +1,32 @@
 const express = require("express");
 const session = require("express-session");
+const RedisStore = require("connect-redis").default;
+const redis = require("redis");
+
+const redisClient = redis.createClient({
+  socket: {
+    host: "** your host**", // Redis server host
+    port: "**your port**", // Redis server port
+  },
+  password: "**your db password**",
+});
+
+redisClient.connect().catch(console.error);
 
 const app = express();
 const port = 3000;
 
 app.use(
   session({
+    store: new RedisStore({ client: redisClient }),
     secret: "your-secret-key",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    cookie: { secure: false }, // Set to true if using HTTPS
   })
 );
 
 app.get("/login", (req, res) => {
-  // Authentication logic here
   req.session.userId = "exampleUserId"; // Store user ID in session
   res.send("Logged in");
 });
